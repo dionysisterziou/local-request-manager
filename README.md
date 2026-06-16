@@ -48,7 +48,7 @@ This app is designed for small local businesses such as:
 * FastAPI
 * Jinja2 templates
 * SQLite
-* SQLAlchemy
+* Python sqlite3 module
 * HTML
 * CSS
 

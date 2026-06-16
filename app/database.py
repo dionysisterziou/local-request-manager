@@ -87,6 +87,34 @@ def get_all_requests():
         connection.close()
 
 
+def get_request_by_id(request_id: int):
+    connection = get_connection()
+
+    try:
+        row = connection.execute(
+            """
+            SELECT
+                id,
+                customer_name,
+                customer_phone,
+                customer_email,
+                message,
+                status,
+                created_at
+            FROM requests
+            WHERE id = ?
+            """,
+            (request_id,),
+        ).fetchone()
+
+        if row is None:
+            return None
+        
+        return dict(row)
+    finally:
+        connection.close()
+
+
 def update_request_status(request_id: int, status: str):
     connection = get_connection()
 

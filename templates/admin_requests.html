@@ -25,7 +25,11 @@
                     <tbody>
                         {% for customer_request in requests %}
                             <tr>
-                                <td>#{{ customer_request.id }}</td>
+                                <td>
+                                    <a href="/admin/requests/{{ customer_request.id }}">
+                                        #{{ customer_request.id}}
+                                    </a>
+                                </td>
                                 <td>{{ customer_request.customer_name }}</td>
                                 <td>{{ customer_request.customer_phone }}</td>
                                 <td>{{ customer_request.customer_email or "-"}}</td>

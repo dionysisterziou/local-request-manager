@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Request #{{ customer_request.id }}</title>
+    </head>
+    <body>
+        <main>
+            <h1> Request #{{ customer_request.id }}</h1>
+
+            <p><strong>Name:</strong> {{ customer_request.customer_name }}</p>
+            <p><strong>Phone:</strong> {{ customer_request.customer_phone }}</p>
+            <p><strong>Email:</strong> {{ customer_request.customer_email or "-" }}</p>
+            <p><strong>Message:</strong> {{ customer_request.message }}</p>
+            <p><strong>Status:</strong> {{ customer_request.status }}</p>
+            <p><strong>Created At:</strong> {{ customer_request.created_at }}</p>
+
+            <h2>Message</h2>
+            <p>{{ customer_request.message }}</p>
+
+            <p>
+                <a href="/admin/requests">Back to admin requests</a>
+            </p>
+        </main>
+    </body>
+</html>

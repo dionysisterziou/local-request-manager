@@ -3,7 +3,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.database import (
-    get_all_requests, 
+    get_all_requests,
+    get_request_by_id,
     init_database, 
     save_request,
     update_request_status,
@@ -11,7 +12,7 @@ from app.database import (
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-ALLOWED_STATUSES = ("new", "in_progress", "completed")
+ALLOWED_STATUSES = ("new", "in_progress", "completed", "rejected")
 
 init_database()
 
@@ -68,6 +69,20 @@ def admin_requests(request: Request):
             "requests": requests,
             "allowed_statuses": ALLOWED_STATUSES,
         },
+    )
+
+
+@app.get("/admin/requests/{request_id}")
+def admin_request_detail(request: Request, request_id: int):
+    customer_request = get_request_by_id(request_id)
+
+    if customer_request is None:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_request_detail.html",
+        context={"customer_request": customer_request},
     )
 
 
