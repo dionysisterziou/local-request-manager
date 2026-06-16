@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -12,8 +14,14 @@ from app.database import (
 )
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = Path(__file__).resolve().parent.parent
+app.mount(
+    "/static", 
+    StaticFiles(directory=str(BASE_DIR / "static")), 
+    name="static",
+)
+
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 ALLOWED_STATUSES = ("new", "in_progress", "completed", "rejected")
 
 init_database()

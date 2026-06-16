@@ -1,7 +1,9 @@
-import sqlite3
 from pathlib import Path
 
-DATABASE_PATH = Path("local_request_manager.db")
+import sqlite3
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = BASE_DIR / "local_request_manager.db"
 
 
 def get_connection():

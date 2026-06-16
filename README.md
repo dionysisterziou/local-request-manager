@@ -207,8 +207,7 @@ Added basic styling and started preparing the project for screenshots and deploy
 
 ## Next Steps
 
-* Add screenshots to the README
 * Prepare deployment configuration
 * Deploy the app
-* Add basic admin protection in a future version
+* Add basic admin protection before using real customer data
 * Consider PostgreSQL for a production-ready database later
