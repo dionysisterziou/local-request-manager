@@ -30,7 +30,19 @@
                                 <td>{{ customer_request.phone }}</td>
                                 <td>{{ customer_request.email or "-"}}</td>
                                 <td>{{ customer_request.message }}</td>
-                                <td>{{ customer_request.status }}</td>
+                                <td>
+                                    <form action="/admin/requests/{{ customer_request.id }}/status" method="post">
+                                        <select name="status">
+                                            {% for status in allowed_statuses %}
+                                                <option value="{{ status }}" {% if status == customer_request.status %}selected{% endif %}>
+                                                    {{  status }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <button type="submit">Update</button>
+                                    </form>
+                                </td>
                                 <td>{{ customer_request.created_at }}</td>
                             </tr>
                         {% endfor %}

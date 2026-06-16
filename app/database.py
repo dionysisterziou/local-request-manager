@@ -85,3 +85,24 @@ def get_all_requests():
         return [dict(row) for row in rows]
     finally:
         connection.close()
+
+
+def update_request_status(request_id: int, status: str):
+    connection = get_connection()
+
+    try:
+        cursor = connection.execute(
+            """
+            UPDATE requests
+            SET status = ?
+            WHERE id = ?
+            """,
+            (
+                status,
+                request_id,
+            ),
+        )
+        connection.commit()
+        return cursor.rowcount
+    finally:
+        connection.close()

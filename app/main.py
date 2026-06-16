@@ -1,10 +1,17 @@
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.database import get_all_requests, init_database, save_request
+from app.database import (
+    get_all_requests, 
+    init_database, 
+    save_request,
+    update_request_status,
+)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+ALLOWED_STATUSES = ("new", "in_progress", "completed")
 
 init_database()
 
@@ -57,5 +64,30 @@ def admin_requests(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="admin_requests.html",
-        context={"requests": requests},
+        context={
+            "requests": requests,
+            "allowed_statuses": ALLOWED_STATUSES,
+        },
+    )
+
+
+@app.post("/admin/requests/{request_id}/status")
+def change_request_status(
+    request_id: int,
+    status: str = Form(...),
+):
+    if status not in ALLOWED_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    updated_rows = update_request_status(
+        request_id=request_id,
+        status=status,
+    )
+
+    if updated_rows == 0:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    return RedirectResponse(
+        url="/admin/requests",
+        status_code=303,
     )
