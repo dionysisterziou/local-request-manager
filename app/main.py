@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 
-from app.database import init_database, save_request
+from app.database import get_all_requests, init_database, save_request
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -47,4 +47,15 @@ def create_request(
             "customer_name": customer_name,
             "request_id": request_id,
         },
+    )
+
+
+@app.get("/admin/requests")
+def admin_requests(request: Request):
+    requests = get_all_requests()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_requests.html",
+        context={"requests": requests},
     )

@@ -5,7 +5,9 @@ DATABASE_PATH = Path("local_request_manager.db")
 
 
 def get_connection():
-    return sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(DATABASE_PATH)
+    connection.row_factory = sqlite3.Row
+    return connection
 
 
 def init_database():
@@ -57,5 +59,29 @@ def save_request(
         )
         connection.commit()
         return cursor.lastrowid
+    finally:
+        connection.close()
+
+
+def get_all_requests():
+    connection = get_connection()
+
+    try:
+        rows = connection.execute(
+            """
+            SELECT
+                id,
+                customer_name,
+                customer_phone,
+                customer_email,
+                message,
+                status,
+                created_at
+            FROM requests
+            ORDER BY id DESC
+            """
+        ).fetchall()
+
+        return [dict(row) for row in rows]
     finally:
         connection.close()

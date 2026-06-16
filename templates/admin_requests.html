@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Admin Requests</title>
+    </head>
+    <body>
+        <main>
+            <h1>Admin Requests</h1>
+            <p>View submitted customer requests.</p>
+
+            {% if requests %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer_request in requests %}
+                            <tr>
+                                <td>#{{ customer_request.id }}</td>
+                                <td>{{ customer_request.name }}</td>
+                                <td>{{ customer_request.phone }}</td>
+                                <td>{{ customer_request.email or "-"}}</td>
+                                <td>{{ customer_request.message }}</td>
+                                <td>{{ customer_request.status }}</td>
+                                <td>{{ customer_request.created_at }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No requests have been submitted yet.</p>
+            {% endif %}
+
+            <p>
+                <a href="/">Back to home</a>
+            </p>
+        </main>
+    </body>
+</html>
