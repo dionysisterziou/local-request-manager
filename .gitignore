@@ -12,6 +12,7 @@ venv/
 
 # SQLite database
 *.db
+*.db-journal
 *.sqlite
 *.sqlite3
 

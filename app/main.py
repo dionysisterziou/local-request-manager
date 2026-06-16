@@ -1,8 +1,12 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.templating import Jinja2Templates
 
+from app.database import init_database, save_request
+
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+init_database()
 
 
 @app.get("/")
@@ -29,8 +33,18 @@ def create_request(
     customer_email: str = Form(""),
     message: str = Form(...),
 ):
+    request_id = save_request(
+        customer_name=customer_name,
+        customer_phone=customer_phone,
+        customer_email=customer_email,
+        message=message,
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="request_success.html",
-        context={"customer_name": customer_name},
+        context={
+            "customer_name": customer_name,
+            "request_id": request_id,
+        },
     )
