@@ -142,15 +142,26 @@ http://127.0.0.1:8000
 
 ## Screenshots
 
-Screenshots will be added before deployment.
+### Landing Page
 
-Planned screenshots:
+![Landing Page](docs/screenshots/landing-page.png)
 
-* Landing page
-* Request form
-* Request success page
-* Admin requests list
-* Request detail page
+### Request Form
+
+![Request Form](docs/screenshots/request-form.png)
+
+### Request Submitted
+
+![Request Submitted](docs/screenshots/request-success.png)
+
+### Admin Requests List
+
+![Admin Requests List](docs/screenshots/admin-requests.png)
+
+### Request Detail Page
+
+![Request Detail Page](docs/screenshots/request-detail.png)
+
 
 ## Out of Scope for MVP
 
