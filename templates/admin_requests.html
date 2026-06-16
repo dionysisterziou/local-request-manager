@@ -26,9 +26,9 @@
                         {% for customer_request in requests %}
                             <tr>
                                 <td>#{{ customer_request.id }}</td>
-                                <td>{{ customer_request.name }}</td>
-                                <td>{{ customer_request.phone }}</td>
-                                <td>{{ customer_request.email or "-"}}</td>
+                                <td>{{ customer_request.customer_name }}</td>
+                                <td>{{ customer_request.customer_phone }}</td>
+                                <td>{{ customer_request.customer_email or "-"}}</td>
                                 <td>{{ customer_request.message }}</td>
                                 <td>
                                     <form action="/admin/requests/{{ customer_request.id }}/status" method="post">
