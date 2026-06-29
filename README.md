@@ -44,6 +44,8 @@ This app is designed for small local businesses such as:
 * View all submitted customer requests
 * View request details
 * Update request status
+* Basic admin protection with password-based login
+* Admin logout
 * Basic admin table styling
 
 ## Request Statuses
@@ -98,11 +100,14 @@ local-request-manager/
 
 ### Admin Routes
 
-| Method | Path                                  | Description           |
-| ------ | ------------------------------------- | --------------------- |
-| GET    | `/admin/requests`                     | View all requests     |
-| GET    | `/admin/requests/{request_id}`        | View request details  |
-| POST   | `/admin/requests/{request_id}/status` | Update request status |
+| Method | Path | Description |
+|---|---|---|
+| GET | `/admin/login` | Admin login form |
+| POST | `/admin/login` | Submit admin password |
+| POST | `/admin/logout` | Logout admin |
+| GET | `/admin/requests` | View all requests |
+| GET | `/admin/requests/{request_id}` | View request details |
+| POST | `/admin/requests/{request_id}/status` | Update request status |
 
 ## Running the Project Locally
 
@@ -128,7 +133,17 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 4. Run the app
+### 4. Set the admin password
+
+On Windows PowerShell:
+
+```powershell
+$env:ADMIN_PASSWORD = "change-this-password"
+```
+
+The admin password is required before starting the app. It is read from an environment variable so that secrets are not stored in the source code.
+
+### 5. Run the app
 
 ```powershell
 uvicorn app.main:app --reload
@@ -139,6 +154,13 @@ Then open:
 ```text
 http://127.0.0.1:8000
 ```
+
+Admin area:
+
+```text
+http://127.0.0.1:8000/admin/login
+```
+
 
 ## Screenshots
 
@@ -209,5 +231,4 @@ Added basic styling and started preparing the project for screenshots and deploy
 
 * Prepare deployment configuration
 * Deploy the app
-* Add basic admin protection before using real customer data
 * Consider PostgreSQL for a production-ready database later
