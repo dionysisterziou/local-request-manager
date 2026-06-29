@@ -10,6 +10,10 @@
             <h1>Admin Requests</h1>
             <p>View submitted customer requests.</p>
 
+            <form action="/admin/logout" method="post">
+                <button type="submit">Logout</button>
+            </form>
+
             {% if requests %}
                 <table>
                     <thead>
