@@ -101,7 +101,7 @@ def admin_login(
     request: Request,
     password: str = Form(...),
 ):
-    if not secrets.compare_digest(password, ADMIN_PASSWORD):
+    if not secrets.compare_digest(password.encode("utf-8"), ADMIN_PASSWORD.encode("utf-8")):
         return templates.TemplateResponse(
             request=request,
             name="admin_login.html",
