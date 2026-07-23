@@ -109,6 +109,14 @@ local-request-manager/
 | GET | `/admin/requests/{request_id}` | View request details |
 | POST | `/admin/requests/{request_id}/status` | Update request status |
 
+## Live Deployment
+
+Live demo: [Open the live application](https://local-request-manager.onrender.com/)
+
+This deployment is intended for portfolio and demonstration purposes only. The Render Free service uses an ephemeral filesystem, so submitted requests stored in the local SQLite database are lost when the service redeploys, restarts, or spins down.
+
+Do not submit real, sensitive, or production customer data.
+
 ## Running the Project Locally
 
 ### 1. Clone the repository
