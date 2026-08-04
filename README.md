@@ -2,7 +2,7 @@
 
 A small FastAPI web app for local businesses to collect, view, and manage customer requests.
 
-The goal of this project is to build a realistic small-business backend/web application with a simple public request form, SQLite persistence, and an admin interface for request management.
+The goal of this project is to build a realistic small-business backend/web application with a simple public request form, PostgreSQL persistence, and an admin interface for request management.
 
 ## Problem
 
@@ -14,7 +14,7 @@ Local Request Manager provides:
 
 * a public landing page
 * a customer request/contact form
-* request storage in SQLite
+* request storage in PostgreSQL
 * an admin page for viewing submitted requests
 * request detail pages
 * status management for each request
@@ -62,8 +62,9 @@ The app currently supports the following request statuses:
 * Python
 * FastAPI
 * Jinja2 templates
-* SQLite
-* Python `sqlite3` module
+* PostgreSQL
+* SQLAlchemy Core
+* Psycopg 3
 * HTML
 * CSS
 
@@ -113,7 +114,7 @@ local-request-manager/
 
 Live demo: [Open the live application](https://local-request-manager.onrender.com/)
 
-This deployment is intended for portfolio and demonstration purposes only. The Render Free service uses an ephemeral filesystem, so submitted requests stored in the local SQLite database are lost when the service redeploys, restarts, or spins down.
+This deployment is intended for portfolio and demonstration purposes only. The application uses managed PostgreSQL in Neon and the data survives when Render restarts/redeploys.
 
 Do not submit real, sensitive, or production customer data.
 
@@ -141,7 +142,15 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### 4. Set the admin password
+### 4. Set the database URL
+
+On Windows PowerShell:
+
+```powershell
+$env:DATABASE_URL = Read-Host "Paste your PostgreSQL DATABASE_URL"
+```
+
+### 5. Set the admin password
 
 On Windows PowerShell:
 
@@ -151,7 +160,7 @@ $env:ADMIN_PASSWORD = "change-this-password"
 
 The admin password is required before starting the app. It is read from an environment variable so that secrets are not stored in the source code.
 
-### 5. Run the app
+### 6. Run the app
 
 ```powershell
 uvicorn app.main:app --reload
@@ -233,10 +242,8 @@ Allowed the admin to update request statuses.
 
 ### Milestone 6: Deployment Prep
 
-Added basic styling and started preparing the project for screenshots and deployment.
+Added basic styling and deployed the application to Render.
 
-## Next Steps
+### Milestone 7: PostgreSQL Migration
 
-* Prepare deployment configuration
-* Deploy the app
-* Consider PostgreSQL for a production-ready database later
+Migrated the persistence layer from SQLite to managed PostgreSQL in Neon using SQLAlchemy Core and Psycopg 3.
