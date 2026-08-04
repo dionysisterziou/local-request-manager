@@ -1,37 +1,47 @@
-from pathlib import Path
+import os
 
-import sqlite3
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    MetaData,
+    Table,
+    Text,
+    create_engine,
+    func,
+    insert,
+    select,
+    update,
+)
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_PATH = BASE_DIR / "local_request_manager.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is required")
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+metadata = MetaData()
+
+requests_table = Table(
+    "requests",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("customer_name", Text, nullable=False),
+    Column("customer_phone", Text, nullable=False),
+    Column("customer_email", Text, nullable=True),
+    Column("message", Text, nullable=False),
+    Column("status", Text, nullable=False, server_default="new"),
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    ),
+)
 
 
-def get_connection():
-    connection = sqlite3.connect(DATABASE_PATH)
-    connection.row_factory = sqlite3.Row
-    return connection
-
-
-def init_database():
-    connection = get_connection()
-
-    try:
-        connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS requests (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                customer_name TEXT NOT NULL,
-                customer_phone TEXT NOT NULL,
-                customer_email TEXT,
-                message TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'new',
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-        )
-        connection.commit()
-    finally:
-        connection.close()
+def init_database() -> None:
+    metadata.create_all(engine)
 
 
 def save_request(
@@ -39,100 +49,49 @@ def save_request(
     customer_phone: str,
     customer_email: str,
     message: str,
-):
-    connection = get_connection()
-
-    try:
-        cursor = connection.execute(
-            """
-            INSERT INTO requests (
-                customer_name,
-                customer_phone,
-                customer_email,
-                message
-            ) VALUES (?, ?, ?, ?)
-            """,
-            (
-                customer_name,
-                customer_phone,
-                customer_email,
-                message,
-            ),
+) -> int:
+    statement = (
+        insert(requests_table)
+        .values(
+            customer_name=customer_name,
+            customer_phone=customer_phone,
+            customer_email=customer_email,
+            message=message,
         )
-        connection.commit()
-        return cursor.lastrowid
-    finally:
-        connection.close()
+        .returning(requests_table.c.id)
+    )
+
+    with engine.begin() as connection:
+        return connection.execute(statement).scalar_one()
 
 
-def get_all_requests():
-    connection = get_connection()
+def get_all_requests() -> list[dict]:
+    statement = select(requests_table).order_by(requests_table.c.id.desc())
 
-    try:
-        rows = connection.execute(
-            """
-            SELECT
-                id,
-                customer_name,
-                customer_phone,
-                customer_email,
-                message,
-                status,
-                created_at
-            FROM requests
-            ORDER BY id DESC
-            """
-        ).fetchall()
+    with engine.connect() as connection:
+        rows = connection.execute(statement).mappings().all()
 
-        return [dict(row) for row in rows]
-    finally:
-        connection.close()
+    return [dict(row) for row in rows]
 
 
-def get_request_by_id(request_id: int):
-    connection = get_connection()
+def get_request_by_id(request_id: int) -> dict | None:
+    statement = select(requests_table).where(requests_table.c.id == request_id)
 
-    try:
-        row = connection.execute(
-            """
-            SELECT
-                id,
-                customer_name,
-                customer_phone,
-                customer_email,
-                message,
-                status,
-                created_at
-            FROM requests
-            WHERE id = ?
-            """,
-            (request_id,),
-        ).fetchone()
+    with engine.connect() as connection:
+        row = connection.execute(statement).mappings().one_or_none()
 
-        if row is None:
-            return None
-        
-        return dict(row)
-    finally:
-        connection.close()
+    return dict(row) if row is not None else None
 
 
-def update_request_status(request_id: int, status: str):
-    connection = get_connection()
+def update_request_status(request_id: int, status: str) -> int:
+    statement = (
+        update(requests_table)
+        .where(requests_table.c.id == request_id)
+        .values(status=status)
+    )
 
-    try:
-        cursor = connection.execute(
-            """
-            UPDATE requests
-            SET status = ?
-            WHERE id = ?
-            """,
-            (
-                status,
-                request_id,
-            ),
-        )
-        connection.commit()
-        return cursor.rowcount
-    finally:
-        connection.close()
+    with engine.begin() as connection:
+        result = connection.execute(statement)
+        updated_rows = result.rowcount
+
+    return updated_rows
