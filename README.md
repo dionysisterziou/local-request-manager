@@ -144,6 +144,10 @@ pip install -r requirements.txt
 
 ### 4. Set the database URL
 
+For local development, use the connection string from the Neon `development` branch. The live Render deployment uses a separate production database branch.
+
+The URL must use the `postgresql+psycopg://` scheme. Never commit database connection strings to Git.
+
 On Windows PowerShell:
 
 ```powershell
@@ -240,10 +244,14 @@ Displayed submitted requests in an admin page.
 
 Allowed the admin to update request statuses.
 
-### Milestone 6: Deployment Prep
+### Milestone 6: Deployment
 
 Added basic styling and deployed the application to Render.
 
 ### Milestone 7: PostgreSQL Migration
 
 Migrated the persistence layer from SQLite to managed PostgreSQL in Neon using SQLAlchemy Core and Psycopg 3.
+
+### Milestone 8: Database Environment Separation
+
+Separated local development and live deployment data by using isolated Neon database branches.
