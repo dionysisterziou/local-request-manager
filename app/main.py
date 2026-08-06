@@ -10,39 +10,54 @@ from fastapi.templating import Jinja2Templates
 from app.database import (
     get_all_requests,
     get_request_by_id,
-    init_database, 
+    init_database,
     save_request,
     update_request_status,
 )
 
-app = FastAPI()
+from starlette.middleware.sessions import SessionMiddleware
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+ALLOWED_STATUSES = ("new", "in_progress", "completed", "rejected")
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+SESSION_SECRET = os.environ.get("SESSION_SECRET")
+
+if not ADMIN_PASSWORD:
+    raise RuntimeError("ADMIN_PASSWORD environment variable is required")
+
+if not SESSION_SECRET:
+    raise RuntimeError("SESSION_SECRET environment variable is required")
+
+app = FastAPI()
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET,
+    session_cookie="admin_session",
+    max_age=60 * 60,
+    same_site="lax",
+    https_only=False,
+)
+
 app.mount(
-    "/static", 
-    StaticFiles(directory=str(BASE_DIR / "static")), 
+    "/static",
+    StaticFiles(directory=str(BASE_DIR / "static")),
     name="static",
 )
 
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
-ALLOWED_STATUSES = ("new", "in_progress", "completed", "rejected")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
-ADMIN_SESSION_TOKEN = secrets.token_urlsafe(32)
-
-if ADMIN_PASSWORD is None:
-    raise RuntimeError("ADMIN_PASSWORD environment variable is required")
 
 init_database()
 
 
 def get_admin_redirect_if_unauthorized(request: Request):
-    admin_session = request.cookies.get("admin_session")
-
-    if admin_session != ADMIN_SESSION_TOKEN:
+    if request.session.get("is_admin") is not True:
         return RedirectResponse(
             url="/admin/login",
             status_code=303,
         )
-    
+
     return None
 
 
@@ -56,10 +71,7 @@ def home(request: Request):
 
 @app.get("/requests/new")
 def new_request_form(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="request_form.html"
-    )
+    return templates.TemplateResponse(request=request, name="request_form.html")
 
 
 @app.post("/requests")
@@ -101,37 +113,32 @@ def admin_login(
     request: Request,
     password: str = Form(...),
 ):
-    if not secrets.compare_digest(password.encode("utf-8"), ADMIN_PASSWORD.encode("utf-8")):
+    if not secrets.compare_digest(
+        password.encode("utf-8"), ADMIN_PASSWORD.encode("utf-8")
+    ):
         return templates.TemplateResponse(
             request=request,
             name="admin_login.html",
             context={"error": "Invalid admin password"},
             status_code=401,
         )
-    
-    response = RedirectResponse(
+
+    request.session["is_admin"] = True
+
+    return RedirectResponse(
         url="/admin/requests",
         status_code=303,
     )
-    response.set_cookie(
-        key="admin_session",
-        value=ADMIN_SESSION_TOKEN,
-        httponly=True,
-        samesite="lax",
-    )
-
-    return response
 
 
 @app.post("/admin/logout")
-def admin_logout():
-    response = RedirectResponse(
+def admin_logout(request: Request):
+    request.session.clear()
+
+    return RedirectResponse(
         url="/admin/login",
         status_code=303,
     )
-    response.delete_cookie("admin_session")
-
-    return response
 
 
 @app.get("/admin/requests")
@@ -164,7 +171,7 @@ def admin_request_detail(request: Request, request_id: int):
 
     if customer_request is None:
         raise HTTPException(status_code=404, detail="Request not found")
-    
+
     return templates.TemplateResponse(
         request=request,
         name="admin_request_detail.html",
@@ -185,7 +192,7 @@ def change_request_status(
 
     if status not in ALLOWED_STATUSES:
         raise HTTPException(status_code=400, detail="Invalid status")
-    
+
     updated_rows = update_request_status(
         request_id=request_id,
         status=status,
@@ -193,7 +200,7 @@ def change_request_status(
 
     if updated_rows == 0:
         raise HTTPException(status_code=404, detail="Request not found")
-    
+
     return RedirectResponse(
         url="/admin/requests",
         status_code=303,
