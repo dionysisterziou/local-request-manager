@@ -44,7 +44,7 @@ This app is designed for small local businesses such as:
 * View all submitted customer requests
 * View request details
 * Update request status
-* Basic admin protection with password-based login
+* Password-based admin authentication with signed sessions
 * Admin logout
 * Basic admin table styling
 
@@ -164,7 +164,17 @@ $env:ADMIN_PASSWORD = "change-this-password"
 
 The admin password is required before starting the app. It is read from an environment variable so that secrets are not stored in the source code.
 
-### 6. Run the app
+### 6. Set the session secret
+
+On Windows PowerShell:
+
+```powershell
+$env:SESSION_SECRET = python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+The session secret is used to sign the admin session cookie. Keep it secret and stable between application restarts, use a different value for each environment, and never commit it to Git.
+
+### 7. Run the app
 
 ```powershell
 uvicorn app.main:app --reload
@@ -255,3 +265,7 @@ Migrated the persistence layer from SQLite to managed PostgreSQL in Neon using S
 ### Milestone 8: Database Environment Separation
 
 Separated local development and live deployment data by using isolated Neon database branches.
+
+### Milestone 9: Signed Admin Sessions
+
+Replaced the temporary in-memory admin session token with signed cookie-based sessions using Starlette's `SessionMiddleware`. Admin sessions now remain valid across application restarts when the `SESSION_SECRET` remains unchanged.
