@@ -1,4 +1,5 @@
 import os
+import re
 import secrets
 from pathlib import Path
 
@@ -50,6 +51,16 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 init_database()
 
 
+REQUEST_FIELD_MAX_LENGTHS = {
+    "customer_name": 100,
+    "customer_phone": 30,
+    "customer_email": 254,
+    "message": 2000,
+}
+
+EMAIL_PATTERN = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+
+
 def validate_request_form(
     customer_name: str,
     customer_phone: str,
@@ -74,6 +85,19 @@ def validate_request_form(
     for field, error_message in required_fields.items():
         if not cleaned_data[field]:
             errors[field] = error_message
+
+    for field, max_length in REQUEST_FIELD_MAX_LENGTHS.items():
+        if len(cleaned_data[field]) > max_length:
+            errors[field] = (
+                f"{field.replace('_', ' ').capitalize()} must be {max_length} characters or fewer."
+            )
+
+    if (
+        cleaned_data["customer_email"]
+        and "customer_email" not in errors
+        and not EMAIL_PATTERN.fullmatch(cleaned_data["customer_email"])
+    ):
+        errors["customer_email"] = "Enter a valid email address."
 
     return cleaned_data, errors
 
