@@ -6,6 +6,7 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.database import (
     get_all_requests,
@@ -14,8 +15,6 @@ from app.database import (
     save_request,
     update_request_status,
 )
-
-from starlette.middleware.sessions import SessionMiddleware
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ALLOWED_STATUSES = ("new", "in_progress", "completed", "rejected")
@@ -51,6 +50,34 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 init_database()
 
 
+def validate_request_form(
+    customer_name: str,
+    customer_phone: str,
+    customer_email: str,
+    message: str,
+):
+    cleaned_data = {
+        "customer_name": customer_name.strip(),
+        "customer_phone": customer_phone.strip(),
+        "customer_email": customer_email.strip(),
+        "message": message.strip(),
+    }
+
+    errors = {}
+
+    required_fields = {
+        "customer_name": "Customer name is required.",
+        "customer_phone": "Customer phone is required.",
+        "message": "Message is required.",
+    }
+
+    for field, error_message in required_fields.items():
+        if not cleaned_data[field]:
+            errors[field] = error_message
+
+    return cleaned_data, errors
+
+
 def get_admin_redirect_if_unauthorized(request: Request):
     if request.session.get("is_admin") is not True:
         return RedirectResponse(
@@ -71,7 +98,14 @@ def home(request: Request):
 
 @app.get("/requests/new")
 def new_request_form(request: Request):
-    return templates.TemplateResponse(request=request, name="request_form.html")
+    return templates.TemplateResponse(
+        request=request,
+        name="request_form.html",
+        context={
+            "form_data": {},
+            "errors": {},
+        },
+    )
 
 
 @app.post("/requests")
@@ -82,18 +116,36 @@ def create_request(
     customer_email: str = Form(""),
     message: str = Form(...),
 ):
+    cleaned_data, errors = validate_request_form(
+        customer_name,
+        customer_phone,
+        customer_email,
+        message,
+    )
+
+    if errors:
+        return templates.TemplateResponse(
+            request=request,
+            name="request_form.html",
+            context={
+                "form_data": cleaned_data,
+                "errors": errors,
+            },
+            status_code=400,
+        )
+
     request_id = save_request(
-        customer_name=customer_name,
-        customer_phone=customer_phone,
-        customer_email=customer_email,
-        message=message,
+        customer_name=cleaned_data["customer_name"],
+        customer_phone=cleaned_data["customer_phone"],
+        customer_email=cleaned_data["customer_email"],
+        message=cleaned_data["message"],
     )
 
     return templates.TemplateResponse(
         request=request,
         name="request_success.html",
         context={
-            "customer_name": customer_name,
+            "customer_name": cleaned_data["customer_name"],
             "request_id": request_id,
         },
     )
