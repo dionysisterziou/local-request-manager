@@ -79,6 +79,7 @@ local-request-manager/
 ├── static/
 │   └── styles.css
 ├── templates/
+│   ├── admin_login.html
 │   ├── admin_request_detail.html
 │   ├── admin_requests.html
 │   ├── index.html
@@ -114,9 +115,11 @@ local-request-manager/
 
 Live demo: [Open the live application](https://local-request-manager.onrender.com/)
 
-This deployment is intended for portfolio and demonstration purposes only. The application uses managed PostgreSQL in Neon and the data survives when Render restarts/redeploys.
+This deployment is intended for portfolio and demonstration purposes only. The application uses managed PostgreSQL in Neon, and the data persists when Render restarts or redeploys the service.
 
-Do not submit real, sensitive, or production customer data.
+The Render service must define `APP_ENV=production`. The application accepts only `development` and `production` as valid environment values. Production mode enables the `Secure` attribute on the admin session cookie because the application runs over HTTPS in production.
+
+Do not submit real, sensitive, or production data.
 
 ## Running the Project Locally
 
@@ -162,7 +165,7 @@ On Windows PowerShell:
 $env:ADMIN_PASSWORD = "change-this-password"
 ```
 
-The admin password is required before starting the app. It is read from an environment variable so that secrets are not stored in the source code.
+The admin password is required before starting the application. It is read from an environment variable so that secrets are not stored in the source code.
 
 ### 6. Set the session secret
 
@@ -174,10 +177,23 @@ $env:SESSION_SECRET = python -c "import secrets; print(secrets.token_urlsafe(32)
 
 The session secret is used to sign the admin session cookie. Keep it secret and stable between application restarts, use a different value for each environment, and never commit it to Git.
 
-### 7. Run the app
+### 7. Set the application environment
+
+On Windows PowerShell:
 
 ```powershell
-uvicorn app.main:app --reload
+$env:APP_ENV = "development"
+```
+
+The application accepts only `development` and `production`:
+
+* Use `development` when running locally over HTTP.
+* Use `production` when deploying to Render over HTTPS. Production mode enables the `Secure` attribute on the admin session cookie.
+
+### 8. Run the application
+
+```powershell
+python -m uvicorn app.main:app --reload
 ```
 
 Then open:
@@ -191,7 +207,6 @@ Admin area:
 ```text
 http://127.0.0.1:8000/admin/login
 ```
-
 
 ## Screenshots
 
@@ -214,7 +229,6 @@ http://127.0.0.1:8000/admin/login
 ### Request Detail Page
 
 ![Request Detail Page](docs/screenshots/request-detail.png)
-
 
 ## Out of Scope for MVP
 
