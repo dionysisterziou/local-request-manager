@@ -22,12 +22,21 @@ ALLOWED_STATUSES = ("new", "in_progress", "completed", "rejected")
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 SESSION_SECRET = os.environ.get("SESSION_SECRET")
+APP_ENV = os.environ.get("APP_ENV")
 
 if not ADMIN_PASSWORD:
     raise RuntimeError("ADMIN_PASSWORD environment variable is required")
 
 if not SESSION_SECRET:
     raise RuntimeError("SESSION_SECRET environment variable is required")
+
+if not APP_ENV:
+    raise RuntimeError("APP_ENV environment variable is required")
+
+if APP_ENV not in ("development", "production"):
+    raise RuntimeError("APP_ENV must be either 'development' or 'production'")
+
+IS_PRODUCTION = APP_ENV == "production"
 
 app = FastAPI()
 
@@ -37,7 +46,7 @@ app.add_middleware(
     session_cookie="admin_session",
     max_age=60 * 60,
     same_site="lax",
-    https_only=False,
+    https_only=IS_PRODUCTION,
 )
 
 app.mount(
